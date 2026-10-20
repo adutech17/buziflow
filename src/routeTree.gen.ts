@@ -10,33 +10,349 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
+import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
+import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
+import { Route as ApiAuthPasswordRouteImport } from './routes/api/auth/password'
+import { Route as ApiAuthProfileRouteImport } from './routes/api/auth/profile'
+import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
+import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/reset-password'
+import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiShopBootstrapRouteImport } from './routes/api/shop/bootstrap'
+import { Route as ApiShopChangeRequestsRouteImport } from './routes/api/shop/change-requests'
+import { Route as ApiShopCustomersRouteImport } from './routes/api/shop/customers'
+import { Route as ApiShopExpensesRouteImport } from './routes/api/shop/expenses'
+import { Route as ApiShopInvoicesRouteImport } from './routes/api/shop/invoices'
+import { Route as ApiShopProductsRouteImport } from './routes/api/shop/products'
+import { Route as ApiShopPurchasesRouteImport } from './routes/api/shop/purchases'
+import { Route as ApiShopRefundRouteImport } from './routes/api/shop/refund'
+import { Route as ApiShopSalesRouteImport } from './routes/api/shop/sales'
+import { Route as ApiShopSettingsRouteImport } from './routes/api/shop/settings'
+import { Route as ApiShopStatusRouteImport } from './routes/api/shop/status'
+import { Route as ApiShopStockRouteImport } from './routes/api/shop/stock'
+import { Route as ApiShopSuppliersRouteImport } from './routes/api/shop/suppliers'
+import { Route as ApiShopTeamRouteImport } from './routes/api/shop/team'
+import { Route as ApiShopUploadRouteImport } from './routes/api/shop/upload'
+import { Route as ApiShopChangeRequestsDecisionRouteImport } from './routes/api/shop/change-requests.decision'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthForgotPasswordRoute = ApiAuthForgotPasswordRouteImport.update({
+  id: '/api/auth/forgot-password',
+  path: '/api/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLoginRoute = ApiAuthLoginRouteImport.update({
+  id: '/api/auth/login',
+  path: '/api/auth/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthLogoutRoute = ApiAuthLogoutRouteImport.update({
+  id: '/api/auth/logout',
+  path: '/api/auth/logout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthPasswordRoute = ApiAuthPasswordRouteImport.update({
+  id: '/api/auth/password',
+  path: '/api/auth/password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthProfileRoute = ApiAuthProfileRouteImport.update({
+  id: '/api/auth/profile',
+  path: '/api/auth/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthRegisterRoute = ApiAuthRegisterRouteImport.update({
+  id: '/api/auth/register',
+  path: '/api/auth/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
+  id: '/api/auth/reset-password',
+  path: '/api/auth/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
+  id: '/api/auth/session',
+  path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopBootstrapRoute = ApiShopBootstrapRouteImport.update({
+  id: '/api/shop/bootstrap',
+  path: '/api/shop/bootstrap',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopChangeRequestsRoute = ApiShopChangeRequestsRouteImport.update({
+  id: '/api/shop/change-requests',
+  path: '/api/shop/change-requests',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopCustomersRoute = ApiShopCustomersRouteImport.update({
+  id: '/api/shop/customers',
+  path: '/api/shop/customers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopExpensesRoute = ApiShopExpensesRouteImport.update({
+  id: '/api/shop/expenses',
+  path: '/api/shop/expenses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopInvoicesRoute = ApiShopInvoicesRouteImport.update({
+  id: '/api/shop/invoices',
+  path: '/api/shop/invoices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopProductsRoute = ApiShopProductsRouteImport.update({
+  id: '/api/shop/products',
+  path: '/api/shop/products',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopPurchasesRoute = ApiShopPurchasesRouteImport.update({
+  id: '/api/shop/purchases',
+  path: '/api/shop/purchases',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopRefundRoute = ApiShopRefundRouteImport.update({
+  id: '/api/shop/refund',
+  path: '/api/shop/refund',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopSalesRoute = ApiShopSalesRouteImport.update({
+  id: '/api/shop/sales',
+  path: '/api/shop/sales',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopSettingsRoute = ApiShopSettingsRouteImport.update({
+  id: '/api/shop/settings',
+  path: '/api/shop/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopStatusRoute = ApiShopStatusRouteImport.update({
+  id: '/api/shop/status',
+  path: '/api/shop/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopStockRoute = ApiShopStockRouteImport.update({
+  id: '/api/shop/stock',
+  path: '/api/shop/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopSuppliersRoute = ApiShopSuppliersRouteImport.update({
+  id: '/api/shop/suppliers',
+  path: '/api/shop/suppliers',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopTeamRoute = ApiShopTeamRouteImport.update({
+  id: '/api/shop/team',
+  path: '/api/shop/team',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopUploadRoute = ApiShopUploadRouteImport.update({
+  id: '/api/shop/upload',
+  path: '/api/shop/upload',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiShopChangeRequestsDecisionRoute =
+  ApiShopChangeRequestsDecisionRouteImport.update({
+    id: '/decision',
+    path: '/decision',
+    getParentRoute: () => ApiShopChangeRequestsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
+  '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
+  '/api/shop/customers': typeof ApiShopCustomersRoute
+  '/api/shop/expenses': typeof ApiShopExpensesRoute
+  '/api/shop/invoices': typeof ApiShopInvoicesRoute
+  '/api/shop/products': typeof ApiShopProductsRoute
+  '/api/shop/purchases': typeof ApiShopPurchasesRoute
+  '/api/shop/refund': typeof ApiShopRefundRoute
+  '/api/shop/sales': typeof ApiShopSalesRoute
+  '/api/shop/settings': typeof ApiShopSettingsRoute
+  '/api/shop/status': typeof ApiShopStatusRoute
+  '/api/shop/stock': typeof ApiShopStockRoute
+  '/api/shop/suppliers': typeof ApiShopSuppliersRoute
+  '/api/shop/team': typeof ApiShopTeamRoute
+  '/api/shop/upload': typeof ApiShopUploadRoute
+  '/api/shop/change-requests/decision': typeof ApiShopChangeRequestsDecisionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
+  '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
+  '/api/shop/customers': typeof ApiShopCustomersRoute
+  '/api/shop/expenses': typeof ApiShopExpensesRoute
+  '/api/shop/invoices': typeof ApiShopInvoicesRoute
+  '/api/shop/products': typeof ApiShopProductsRoute
+  '/api/shop/purchases': typeof ApiShopPurchasesRoute
+  '/api/shop/refund': typeof ApiShopRefundRoute
+  '/api/shop/sales': typeof ApiShopSalesRoute
+  '/api/shop/settings': typeof ApiShopSettingsRoute
+  '/api/shop/status': typeof ApiShopStatusRoute
+  '/api/shop/stock': typeof ApiShopStockRoute
+  '/api/shop/suppliers': typeof ApiShopSuppliersRoute
+  '/api/shop/team': typeof ApiShopTeamRoute
+  '/api/shop/upload': typeof ApiShopUploadRoute
+  '/api/shop/change-requests/decision': typeof ApiShopChangeRequestsDecisionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
+  '/api/auth/login': typeof ApiAuthLoginRoute
+  '/api/auth/logout': typeof ApiAuthLogoutRoute
+  '/api/auth/password': typeof ApiAuthPasswordRoute
+  '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/register': typeof ApiAuthRegisterRoute
+  '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
+  '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
+  '/api/shop/customers': typeof ApiShopCustomersRoute
+  '/api/shop/expenses': typeof ApiShopExpensesRoute
+  '/api/shop/invoices': typeof ApiShopInvoicesRoute
+  '/api/shop/products': typeof ApiShopProductsRoute
+  '/api/shop/purchases': typeof ApiShopPurchasesRoute
+  '/api/shop/refund': typeof ApiShopRefundRoute
+  '/api/shop/sales': typeof ApiShopSalesRoute
+  '/api/shop/settings': typeof ApiShopSettingsRoute
+  '/api/shop/status': typeof ApiShopStatusRoute
+  '/api/shop/stock': typeof ApiShopStockRoute
+  '/api/shop/suppliers': typeof ApiShopSuppliersRoute
+  '/api/shop/team': typeof ApiShopTeamRoute
+  '/api/shop/upload': typeof ApiShopUploadRoute
+  '/api/shop/change-requests/decision': typeof ApiShopChangeRequestsDecisionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/api/auth/forgot-password'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/password'
+    | '/api/auth/profile'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/session'
+    | '/api/shop/bootstrap'
+    | '/api/shop/change-requests'
+    | '/api/shop/customers'
+    | '/api/shop/expenses'
+    | '/api/shop/invoices'
+    | '/api/shop/products'
+    | '/api/shop/purchases'
+    | '/api/shop/refund'
+    | '/api/shop/sales'
+    | '/api/shop/settings'
+    | '/api/shop/status'
+    | '/api/shop/stock'
+    | '/api/shop/suppliers'
+    | '/api/shop/team'
+    | '/api/shop/upload'
+    | '/api/shop/change-requests/decision'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/api/auth/forgot-password'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/password'
+    | '/api/auth/profile'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/session'
+    | '/api/shop/bootstrap'
+    | '/api/shop/change-requests'
+    | '/api/shop/customers'
+    | '/api/shop/expenses'
+    | '/api/shop/invoices'
+    | '/api/shop/products'
+    | '/api/shop/purchases'
+    | '/api/shop/refund'
+    | '/api/shop/sales'
+    | '/api/shop/settings'
+    | '/api/shop/status'
+    | '/api/shop/stock'
+    | '/api/shop/suppliers'
+    | '/api/shop/team'
+    | '/api/shop/upload'
+    | '/api/shop/change-requests/decision'
+  id:
+    | '__root__'
+    | '/'
+    | '/api/auth/forgot-password'
+    | '/api/auth/login'
+    | '/api/auth/logout'
+    | '/api/auth/password'
+    | '/api/auth/profile'
+    | '/api/auth/register'
+    | '/api/auth/reset-password'
+    | '/api/auth/session'
+    | '/api/shop/bootstrap'
+    | '/api/shop/change-requests'
+    | '/api/shop/customers'
+    | '/api/shop/expenses'
+    | '/api/shop/invoices'
+    | '/api/shop/products'
+    | '/api/shop/purchases'
+    | '/api/shop/refund'
+    | '/api/shop/sales'
+    | '/api/shop/settings'
+    | '/api/shop/status'
+    | '/api/shop/stock'
+    | '/api/shop/suppliers'
+    | '/api/shop/team'
+    | '/api/shop/upload'
+    | '/api/shop/change-requests/decision'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
+  ApiAuthLoginRoute: typeof ApiAuthLoginRoute
+  ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
+  ApiAuthPasswordRoute: typeof ApiAuthPasswordRoute
+  ApiAuthProfileRoute: typeof ApiAuthProfileRoute
+  ApiAuthRegisterRoute: typeof ApiAuthRegisterRoute
+  ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
+  ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiShopBootstrapRoute: typeof ApiShopBootstrapRoute
+  ApiShopChangeRequestsRoute: typeof ApiShopChangeRequestsRouteWithChildren
+  ApiShopCustomersRoute: typeof ApiShopCustomersRoute
+  ApiShopExpensesRoute: typeof ApiShopExpensesRoute
+  ApiShopInvoicesRoute: typeof ApiShopInvoicesRoute
+  ApiShopProductsRoute: typeof ApiShopProductsRoute
+  ApiShopPurchasesRoute: typeof ApiShopPurchasesRoute
+  ApiShopRefundRoute: typeof ApiShopRefundRoute
+  ApiShopSalesRoute: typeof ApiShopSalesRoute
+  ApiShopSettingsRoute: typeof ApiShopSettingsRoute
+  ApiShopStatusRoute: typeof ApiShopStatusRoute
+  ApiShopStockRoute: typeof ApiShopStockRoute
+  ApiShopSuppliersRoute: typeof ApiShopSuppliersRoute
+  ApiShopTeamRoute: typeof ApiShopTeamRoute
+  ApiShopUploadRoute: typeof ApiShopUploadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +364,215 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/forgot-password': {
+      id: '/api/auth/forgot-password'
+      path: '/api/auth/forgot-password'
+      fullPath: '/api/auth/forgot-password'
+      preLoaderRoute: typeof ApiAuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/login': {
+      id: '/api/auth/login'
+      path: '/api/auth/login'
+      fullPath: '/api/auth/login'
+      preLoaderRoute: typeof ApiAuthLoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/logout': {
+      id: '/api/auth/logout'
+      path: '/api/auth/logout'
+      fullPath: '/api/auth/logout'
+      preLoaderRoute: typeof ApiAuthLogoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/password': {
+      id: '/api/auth/password'
+      path: '/api/auth/password'
+      fullPath: '/api/auth/password'
+      preLoaderRoute: typeof ApiAuthPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/profile': {
+      id: '/api/auth/profile'
+      path: '/api/auth/profile'
+      fullPath: '/api/auth/profile'
+      preLoaderRoute: typeof ApiAuthProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/register': {
+      id: '/api/auth/register'
+      path: '/api/auth/register'
+      fullPath: '/api/auth/register'
+      preLoaderRoute: typeof ApiAuthRegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/reset-password': {
+      id: '/api/auth/reset-password'
+      path: '/api/auth/reset-password'
+      fullPath: '/api/auth/reset-password'
+      preLoaderRoute: typeof ApiAuthResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/session': {
+      id: '/api/auth/session'
+      path: '/api/auth/session'
+      fullPath: '/api/auth/session'
+      preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/bootstrap': {
+      id: '/api/shop/bootstrap'
+      path: '/api/shop/bootstrap'
+      fullPath: '/api/shop/bootstrap'
+      preLoaderRoute: typeof ApiShopBootstrapRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/change-requests': {
+      id: '/api/shop/change-requests'
+      path: '/api/shop/change-requests'
+      fullPath: '/api/shop/change-requests'
+      preLoaderRoute: typeof ApiShopChangeRequestsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/customers': {
+      id: '/api/shop/customers'
+      path: '/api/shop/customers'
+      fullPath: '/api/shop/customers'
+      preLoaderRoute: typeof ApiShopCustomersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/expenses': {
+      id: '/api/shop/expenses'
+      path: '/api/shop/expenses'
+      fullPath: '/api/shop/expenses'
+      preLoaderRoute: typeof ApiShopExpensesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/invoices': {
+      id: '/api/shop/invoices'
+      path: '/api/shop/invoices'
+      fullPath: '/api/shop/invoices'
+      preLoaderRoute: typeof ApiShopInvoicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/products': {
+      id: '/api/shop/products'
+      path: '/api/shop/products'
+      fullPath: '/api/shop/products'
+      preLoaderRoute: typeof ApiShopProductsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/purchases': {
+      id: '/api/shop/purchases'
+      path: '/api/shop/purchases'
+      fullPath: '/api/shop/purchases'
+      preLoaderRoute: typeof ApiShopPurchasesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/refund': {
+      id: '/api/shop/refund'
+      path: '/api/shop/refund'
+      fullPath: '/api/shop/refund'
+      preLoaderRoute: typeof ApiShopRefundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/sales': {
+      id: '/api/shop/sales'
+      path: '/api/shop/sales'
+      fullPath: '/api/shop/sales'
+      preLoaderRoute: typeof ApiShopSalesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/settings': {
+      id: '/api/shop/settings'
+      path: '/api/shop/settings'
+      fullPath: '/api/shop/settings'
+      preLoaderRoute: typeof ApiShopSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/status': {
+      id: '/api/shop/status'
+      path: '/api/shop/status'
+      fullPath: '/api/shop/status'
+      preLoaderRoute: typeof ApiShopStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/stock': {
+      id: '/api/shop/stock'
+      path: '/api/shop/stock'
+      fullPath: '/api/shop/stock'
+      preLoaderRoute: typeof ApiShopStockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/suppliers': {
+      id: '/api/shop/suppliers'
+      path: '/api/shop/suppliers'
+      fullPath: '/api/shop/suppliers'
+      preLoaderRoute: typeof ApiShopSuppliersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/team': {
+      id: '/api/shop/team'
+      path: '/api/shop/team'
+      fullPath: '/api/shop/team'
+      preLoaderRoute: typeof ApiShopTeamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/upload': {
+      id: '/api/shop/upload'
+      path: '/api/shop/upload'
+      fullPath: '/api/shop/upload'
+      preLoaderRoute: typeof ApiShopUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/shop/change-requests/decision': {
+      id: '/api/shop/change-requests/decision'
+      path: '/decision'
+      fullPath: '/api/shop/change-requests/decision'
+      preLoaderRoute: typeof ApiShopChangeRequestsDecisionRouteImport
+      parentRoute: typeof ApiShopChangeRequestsRoute
+    }
   }
 }
 
+interface ApiShopChangeRequestsRouteChildren {
+  ApiShopChangeRequestsDecisionRoute: typeof ApiShopChangeRequestsDecisionRoute
+}
+
+const ApiShopChangeRequestsRouteChildren: ApiShopChangeRequestsRouteChildren = {
+  ApiShopChangeRequestsDecisionRoute: ApiShopChangeRequestsDecisionRoute,
+}
+
+const ApiShopChangeRequestsRouteWithChildren =
+  ApiShopChangeRequestsRoute._addFileChildren(
+    ApiShopChangeRequestsRouteChildren,
+  )
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
+  ApiAuthLoginRoute: ApiAuthLoginRoute,
+  ApiAuthLogoutRoute: ApiAuthLogoutRoute,
+  ApiAuthPasswordRoute: ApiAuthPasswordRoute,
+  ApiAuthProfileRoute: ApiAuthProfileRoute,
+  ApiAuthRegisterRoute: ApiAuthRegisterRoute,
+  ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
+  ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiShopBootstrapRoute: ApiShopBootstrapRoute,
+  ApiShopChangeRequestsRoute: ApiShopChangeRequestsRouteWithChildren,
+  ApiShopCustomersRoute: ApiShopCustomersRoute,
+  ApiShopExpensesRoute: ApiShopExpensesRoute,
+  ApiShopInvoicesRoute: ApiShopInvoicesRoute,
+  ApiShopProductsRoute: ApiShopProductsRoute,
+  ApiShopPurchasesRoute: ApiShopPurchasesRoute,
+  ApiShopRefundRoute: ApiShopRefundRoute,
+  ApiShopSalesRoute: ApiShopSalesRoute,
+  ApiShopSettingsRoute: ApiShopSettingsRoute,
+  ApiShopStatusRoute: ApiShopStatusRoute,
+  ApiShopStockRoute: ApiShopStockRoute,
+  ApiShopSuppliersRoute: ApiShopSuppliersRoute,
+  ApiShopTeamRoute: ApiShopTeamRoute,
+  ApiShopUploadRoute: ApiShopUploadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
