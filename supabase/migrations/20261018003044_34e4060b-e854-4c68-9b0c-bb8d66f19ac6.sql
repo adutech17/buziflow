@@ -1,0 +1,5 @@
+CREATE TABLE public.invoice_lines (id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY, invoice_id UUID NOT NULL REFERENCES public.invoices(id) ON DELETE CASCADE, description TEXT NOT NULL, quantity NUMERIC NOT NULL DEFAULT 1, unit_price NUMERIC NOT NULL DEFAULT 0, created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now());
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.invoice_lines TO authenticated;
+GRANT ALL ON public.invoice_lines TO service_role;
+ALTER TABLE public.invoice_lines ENABLE ROW LEVEL SECURITY;
+CREATE POLICY invoice_lines_workspace_access ON public.invoice_lines FOR ALL TO authenticated USING (EXISTS (SELECT 1 FROM public.invoices i WHERE i.id = invoice_lines.invoice_id AND i.workspace_id = (SELECT current_workspace_id()))) WITH CHECK (EXISTS (SELECT 1 FROM public.invoices i WHERE i.id = invoice_lines.invoice_id AND i.workspace_id = (SELECT current_workspace_id())));
