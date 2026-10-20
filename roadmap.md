@@ -4,4 +4,9 @@
 - [x] Refunds & returns
 - [x] Sales reports export (spreadsheet, date range)
 - [x] Team / roles & permissions page: Managing Director only
-- [ ] Password recovery emails (not requested yet)
+- [ ] Centralized custom accounts, memberships and sessions; remove alternative authentication
+- [ ] Origin, CSRF, expiry, rotation, revocation and step-up security
+- [ ] Frontend session lifecycle and authenticated operation integration
+- [ ] Database migration preserving existing accounts and data
+- [ ] Security regression tests and authenticated end-to-end verification
+- [ ] Password recovery delivery configuration
