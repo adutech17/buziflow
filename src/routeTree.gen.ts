@@ -15,9 +15,11 @@ import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthLogoutRouteImport } from './routes/api/auth/logout'
 import { Route as ApiAuthPasswordRouteImport } from './routes/api/auth/password'
 import { Route as ApiAuthProfileRouteImport } from './routes/api/auth/profile'
+import { Route as ApiAuthReauthenticateRouteImport } from './routes/api/auth/reauthenticate'
 import { Route as ApiAuthRegisterRouteImport } from './routes/api/auth/register'
 import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/reset-password'
 import { Route as ApiAuthSessionRouteImport } from './routes/api/auth/session'
+import { Route as ApiAuthWorkspaceRouteImport } from './routes/api/auth/workspace'
 import { Route as ApiShopBootstrapRouteImport } from './routes/api/shop/bootstrap'
 import { Route as ApiShopChangeRequestsRouteImport } from './routes/api/shop/change-requests'
 import { Route as ApiShopCustomersRouteImport } from './routes/api/shop/customers'
@@ -65,6 +67,11 @@ const ApiAuthProfileRoute = ApiAuthProfileRouteImport.update({
   path: '/api/auth/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthReauthenticateRoute = ApiAuthReauthenticateRouteImport.update({
+  id: '/api/auth/reauthenticate',
+  path: '/api/auth/reauthenticate',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthRegisterRoute = ApiAuthRegisterRouteImport.update({
   id: '/api/auth/register',
   path: '/api/auth/register',
@@ -78,6 +85,11 @@ const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
 const ApiAuthSessionRoute = ApiAuthSessionRouteImport.update({
   id: '/api/auth/session',
   path: '/api/auth/session',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthWorkspaceRoute = ApiAuthWorkspaceRouteImport.update({
+  id: '/api/auth/workspace',
+  path: '/api/auth/workspace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiShopBootstrapRoute = ApiShopBootstrapRouteImport.update({
@@ -169,9 +181,11 @@ export interface FileRoutesByFullPath {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/reauthenticate': typeof ApiAuthReauthenticateRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/workspace': typeof ApiAuthWorkspaceRoute
   '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
   '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
   '/api/shop/customers': typeof ApiShopCustomersRoute
@@ -196,9 +210,11 @@ export interface FileRoutesByTo {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/reauthenticate': typeof ApiAuthReauthenticateRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/workspace': typeof ApiAuthWorkspaceRoute
   '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
   '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
   '/api/shop/customers': typeof ApiShopCustomersRoute
@@ -224,9 +240,11 @@ export interface FileRoutesById {
   '/api/auth/logout': typeof ApiAuthLogoutRoute
   '/api/auth/password': typeof ApiAuthPasswordRoute
   '/api/auth/profile': typeof ApiAuthProfileRoute
+  '/api/auth/reauthenticate': typeof ApiAuthReauthenticateRoute
   '/api/auth/register': typeof ApiAuthRegisterRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
   '/api/auth/session': typeof ApiAuthSessionRoute
+  '/api/auth/workspace': typeof ApiAuthWorkspaceRoute
   '/api/shop/bootstrap': typeof ApiShopBootstrapRoute
   '/api/shop/change-requests': typeof ApiShopChangeRequestsRouteWithChildren
   '/api/shop/customers': typeof ApiShopCustomersRoute
@@ -253,9 +271,11 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/password'
     | '/api/auth/profile'
+    | '/api/auth/reauthenticate'
     | '/api/auth/register'
     | '/api/auth/reset-password'
     | '/api/auth/session'
+    | '/api/auth/workspace'
     | '/api/shop/bootstrap'
     | '/api/shop/change-requests'
     | '/api/shop/customers'
@@ -280,9 +300,11 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/password'
     | '/api/auth/profile'
+    | '/api/auth/reauthenticate'
     | '/api/auth/register'
     | '/api/auth/reset-password'
     | '/api/auth/session'
+    | '/api/auth/workspace'
     | '/api/shop/bootstrap'
     | '/api/shop/change-requests'
     | '/api/shop/customers'
@@ -307,9 +329,11 @@ export interface FileRouteTypes {
     | '/api/auth/logout'
     | '/api/auth/password'
     | '/api/auth/profile'
+    | '/api/auth/reauthenticate'
     | '/api/auth/register'
     | '/api/auth/reset-password'
     | '/api/auth/session'
+    | '/api/auth/workspace'
     | '/api/shop/bootstrap'
     | '/api/shop/change-requests'
     | '/api/shop/customers'
@@ -335,9 +359,11 @@ export interface RootRouteChildren {
   ApiAuthLogoutRoute: typeof ApiAuthLogoutRoute
   ApiAuthPasswordRoute: typeof ApiAuthPasswordRoute
   ApiAuthProfileRoute: typeof ApiAuthProfileRoute
+  ApiAuthReauthenticateRoute: typeof ApiAuthReauthenticateRoute
   ApiAuthRegisterRoute: typeof ApiAuthRegisterRoute
   ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
   ApiAuthSessionRoute: typeof ApiAuthSessionRoute
+  ApiAuthWorkspaceRoute: typeof ApiAuthWorkspaceRoute
   ApiShopBootstrapRoute: typeof ApiShopBootstrapRoute
   ApiShopChangeRequestsRoute: typeof ApiShopChangeRequestsRouteWithChildren
   ApiShopCustomersRoute: typeof ApiShopCustomersRoute
@@ -399,6 +425,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/reauthenticate': {
+      id: '/api/auth/reauthenticate'
+      path: '/api/auth/reauthenticate'
+      fullPath: '/api/auth/reauthenticate'
+      preLoaderRoute: typeof ApiAuthReauthenticateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/register': {
       id: '/api/auth/register'
       path: '/api/auth/register'
@@ -418,6 +451,13 @@ declare module '@tanstack/react-router' {
       path: '/api/auth/session'
       fullPath: '/api/auth/session'
       preLoaderRoute: typeof ApiAuthSessionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/workspace': {
+      id: '/api/auth/workspace'
+      path: '/api/auth/workspace'
+      fullPath: '/api/auth/workspace'
+      preLoaderRoute: typeof ApiAuthWorkspaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/shop/bootstrap': {
@@ -555,9 +595,11 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthLogoutRoute: ApiAuthLogoutRoute,
   ApiAuthPasswordRoute: ApiAuthPasswordRoute,
   ApiAuthProfileRoute: ApiAuthProfileRoute,
+  ApiAuthReauthenticateRoute: ApiAuthReauthenticateRoute,
   ApiAuthRegisterRoute: ApiAuthRegisterRoute,
   ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
   ApiAuthSessionRoute: ApiAuthSessionRoute,
+  ApiAuthWorkspaceRoute: ApiAuthWorkspaceRoute,
   ApiShopBootstrapRoute: ApiShopBootstrapRoute,
   ApiShopChangeRequestsRoute: ApiShopChangeRequestsRouteWithChildren,
   ApiShopCustomersRoute: ApiShopCustomersRoute,
