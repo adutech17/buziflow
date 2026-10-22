@@ -29,7 +29,7 @@ export function allowedOrigins() {
 export function validateOrigin(request: Request) { validateRequestOrigin(request, allowedOrigins()) }
 
 export async function bodyOf(request: Request, limit = 256 * 1024): Promise<Record<string, any>> {
-  if (!request.headers.get('content-type')?.split(';')[0].trim().includes('application/json')) {
+  if (request.headers.get('content-type')?.split(';')[0]?.trim() !== 'application/json') {
     throw new AuthError('CONTENT_TYPE_INVALID', 'Use a JSON request.', 415)
   }
   if (Number(request.headers.get('content-length')) > limit) throw new AuthError('BODY_TOO_LARGE', 'Request is too large.', 413)
@@ -55,7 +55,9 @@ export async function bodyOf(request: Request, limit = 256 * 1024): Promise<Reco
 function cookieId(request: Request) {
   const entries = (request.headers.get('cookie') ?? '').split(';').map(value => value.trim()).filter(value => value.startsWith(`${AUTH_POLICY.cookie}=`))
   if (entries.length !== 1) return ''
-  const value = entries[0].slice(AUTH_POLICY.cookie.length + 1)
+  const entry = entries[0]
+  if (!entry) return ''
+  const value = entry.slice(AUTH_POLICY.cookie.length + 1)
   return /^[a-f0-9]{64}$/.test(value) ? value : ''
 }
 
