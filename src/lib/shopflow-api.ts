@@ -7,7 +7,7 @@ type JsonRecord = Record<string, unknown>
 
 let csrfToken = ''
 let sessionGeneration = 0
-const pendingRequests = new Set<AbortController>()
+const pendingRequests = new Map<AbortController, string>()
 let reauthenticate: (() => Promise<void>) | undefined
 let reauthenticationInFlight: Promise<void> | undefined
 let mutationQueue: Promise<unknown> = Promise.resolve()
@@ -20,7 +20,7 @@ export function registerReauthentication(handler: () => Promise<void>) {
 export function clearSessionState(notify = true) {
   csrfToken = ''
   sessionGeneration += 1
-  for (const controller of pendingRequests) controller.abort()
+  for (const controller of pendingRequests.keys()) controller.abort()
   pendingRequests.clear()
   if (notify && typeof window !== 'undefined') window.dispatchEvent(new Event('shopflow:session-ended'))
 }
@@ -52,7 +52,7 @@ function requestId() {
 
 async function request<T = unknown>(path: string, init: RequestInit = {}): Promise<{ data: T }> {
   if (!path.startsWith('/api/') || path.startsWith('//')) throw new Error('Only same-origin app requests are allowed.')
-  const generation = sessionGeneration
+  let generation = sessionGeneration
   const method = (init.method || 'GET').toUpperCase()
   const headers = new Headers(init.headers)
   headers.set('accept', 'application/json')
@@ -62,7 +62,7 @@ async function request<T = unknown>(path: string, init: RequestInit = {}): Promi
   let confirmed = false
   while (true) {
     const controller = new AbortController()
-    pendingRequests.add(controller)
+    pendingRequests.set(controller, method)
     const signal = init.signal
       ? AbortSignal.any([init.signal, controller.signal])
       : controller.signal
@@ -87,6 +87,7 @@ async function request<T = unknown>(path: string, init: RequestInit = {}): Promi
           // ambiguous network failure for a state-changing request.
           window.clearTimeout(timeout)
           await confirmAuthentication()
+          generation = sessionGeneration
           confirmed = true
           continue
         }
@@ -97,11 +98,18 @@ async function request<T = unknown>(path: string, init: RequestInit = {}): Promi
         }
         throw error
       }
+      if (path === '/api/auth/workspace' || path === '/api/auth/reauthenticate') {
+        sessionGeneration += 1
+        for (const [pending, pendingMethod] of pendingRequests) {
+          if (pending !== controller && pendingMethod === 'GET') pending.abort()
+        }
+      }
       if (typeof data.csrfToken === 'string') setCsrfToken(data.csrfToken)
       if (data.signedOut === true) clearSessionState()
       if (path === '/api/auth/session' && data.authenticated === false && csrfToken) clearSessionState()
       return { data: data as T }
     } catch (error) {
+      if (generation !== sessionGeneration) throw new Error('Session changed.')
       if (isAbortError(error)) throw new Error('The request timed out. Please try again.')
       if (method === 'GET' && attempt < MAX_GET_RETRIES && !(error as ApiError)?.status) {
         attempt += 1
@@ -121,22 +129,18 @@ export const api = {
     return request<T>(path)
   },
   post<T = any>(path: string, body: JsonRecord = {}) {
+    const queuedGeneration = sessionGeneration
     const run = () => request<T>(path, { method: 'POST', body: JSON.stringify(body) })
     // Reauthentication runs outside the mutation queue to unblock the request
     // that asked for it. Other mutations are serialized across cookie rotation.
     if (path === '/api/auth/reauthenticate') return run()
-    const result = mutationQueue.then(run, run)
+    const queued = () => {
+      if (queuedGeneration !== sessionGeneration) throw new Error('Session changed. Try again.')
+      return run()
+    }
+    const result = mutationQueue.then(queued, queued)
     mutationQueue = result.catch(() => {})
     return result
-  },
-  put<T = any>(path: string, body: JsonRecord = {}) {
-    return request<T>(path, { method: 'PUT', body: JSON.stringify(body) })
-  },
-  patch<T = any>(path: string, body: JsonRecord = {}) {
-    return request<T>(path, { method: 'PATCH', body: JSON.stringify(body) })
-  },
-  delete<T = any>(path: string, body: JsonRecord = {}) {
-    return request<T>(path, { method: 'DELETE', body: JSON.stringify(body) })
   },
 }
 
