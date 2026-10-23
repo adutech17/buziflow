@@ -21,7 +21,7 @@ export function bad(message: string, status = 400) { return json({ error: messag
 
 export function allowedOrigins() {
   const configured = process.env['SHOPFLOW_APP_ORIGINS']
-  const origins = (configured ?? 'https://seamless-data-handoff.lovable.app,https://id-preview--244916b9-195b-4503-b642-7a7dfc5b0c75.lovable.app').split(',').map(value => value.trim()).filter(Boolean)
+  const origins = (configured ?? 'https://buziflow.lovable.app,https://id-preview--244916b9-195b-4503-b642-7a7dfc5b0c75.lovable.app').split(',').map(value => value.trim()).filter(Boolean)
   // Local development only. Never derive the trust list from Host/forwarded headers.
   if (import.meta.env.DEV) origins.push('http://localhost:8080')
   return origins
@@ -203,9 +203,9 @@ export async function handleLogout(request: Request) {
   return json({ ok: true }, 200, { 'set-cookie': sessionCookie('', 0) })
 }
 
-async function rotate(request: Request, ctx: SessionCtx, workspace?: string) {
+async function rotate(request: Request, ctx: SessionCtx, workspace?: string, reauthenticated = false) {
   const raw = randomToken(); const csrf = randomToken()
-  const { data, error } = await database().rpc('rotate_custom_session', { p_old: ctx.sessionId, p_new: await digestToken(raw), p_csrf: csrf, p_workspace: workspace ?? null })
+  const { data, error } = await database().rpc('rotate_custom_session', { p_old: ctx.sessionId, p_new: await digestToken(raw), p_csrf: csrf, p_workspace: workspace ?? null, p_reauthenticated: reauthenticated })
   databaseError(error)
   const session = data?.[0]
   if (!session) throw new AuthError('SESSION_EXPIRED', 'Session changed. Sign in again.', 401)
@@ -217,7 +217,7 @@ export async function handleReauthenticate(request: Request) {
   const body = parse(z.object({ password: passwordSchema }), await bodyOf(request))
   await rateLimit(request, 'reauthenticate', ctx.email, 5)
   await verifyAccount(ctx.email, body.password)
-  return rotate(request, ctx)
+  return rotate(request, ctx, undefined, true)
 }
 export async function handleSwitchWorkspace(request: Request) {
   const ctx = await getSession(request, true)
@@ -258,7 +258,9 @@ export async function handlePassword(request: Request) {
 export async function handleForgotPassword(request: Request) {
   validateOrigin(request)
   const { email } = parse(z.object({ email: emailSchema }), await bodyOf(request))
-  await rateLimit(request, 'recovery', email, 5)
+  const accepted = () => json({ ok: true, message: 'If that account exists, recovery instructions have been sent.' })
+  try { await rateLimit(request, 'recovery', email, 5) }
+  catch (error) { if (error instanceof AuthError && error.code === 'RATE_LIMITED') return accepted(); throw error }
   const apiKey = process.env['SHOPFLOW_RECOVERY_EMAIL_KEY']
   const from = process.env['SHOPFLOW_RECOVERY_EMAIL_FROM']
   if (!apiKey || !from) throw new AuthError('RECOVERY_NOT_CONFIGURED', 'Password recovery email is not configured. Contact your Managing Director.', 503)
@@ -270,9 +272,13 @@ export async function handleForgotPassword(request: Request) {
     databaseError(insertError)
     const response = await fetch('https://api.resend.com/emails', { method: 'POST', headers: { authorization: `Bearer ${apiKey}`, 'content-type': 'application/json' },
       body: JSON.stringify({ from, to: [email], subject: 'ShopFlow password recovery', text: `Your ShopFlow recovery token is ${raw}. It expires in 15 minutes. If you did not request this, ignore this email.` }) })
-    if (!response.ok) { await db.from('auth_recovery_tokens').delete().eq('id', id); throw new AuthError('RECOVERY_UNAVAILABLE', 'Recovery email could not be delivered. Try again later.', 503) }
+    if (!response.ok) {
+      await db.from('auth_recovery_tokens').delete().eq('id', id)
+      // Do not distinguish a real account through the delivery outcome.
+      console.error('Password recovery delivery failed', response.status)
+    }
   }
-  return json({ ok: true, message: 'If that account exists, recovery instructions have been sent.' })
+  return accepted()
 }
 export async function handleResetPassword(request: Request) {
   validateOrigin(request)

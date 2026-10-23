@@ -1,13 +1,10 @@
 // @ts-nocheck — existing business rows are dynamically typed.
 // Imported only inside raw HTTP handlers; no browser authentication client.
-import { database } from './database';
-import { BUSINESS_ROLES, isValidPassword } from '@/lib/shopflow-constants';
+import { database, databaseError } from './database';
 import { randomToken as token } from './auth-crypto';
 import { AuthError } from '@/lib/auth-policy';
 import { bodyOf, getSession, guard, permit, publicUser, emailMap, json, bad, stepUp, createAccount } from './custom-auth';
 export { handleSession, handleRegister, handleLogin, handleLogout, handleProfile, handlePassword, handleForgotPassword, handleResetPassword, handleReauthenticate, handleSwitchWorkspace } from './custom-auth';
-const ROLES = BUSINESS_ROLES;
-const validPassword = isValidPassword;
 // A new server-only client is constructed using runtime configuration, not a
 // cached browser session. Every data handler checks the custom session first.
 const supabaseAdmin = new Proxy({}, { get(_target, property) { const db = database(); const value = db[property]; return typeof value === 'function' ? value.bind(db) : value; } });
@@ -63,7 +60,9 @@ export async function handleBootstrap(request: Request) {
     supabaseAdmin.from('workspace_memberships').select('user_id,role,active').eq('workspace_id', ws),
     supabaseAdmin.from('change_requests').select('*').eq('workspace_id', ws).order('created_at', { ascending: false }).limit(250),
   ]);
-  const { data: teamProfiles } = await supabaseAdmin.from('profiles').select('id,name,created_at').in('id', (teamR.data || []).map(t => t.user_id));
+  for (const result of [productsR,salesR,customersR,suppliersR,purchasesR,expensesR,invoicesR,stockR,teamR,changeR]) databaseError(result.error);
+  const { data: teamProfiles, error: teamError } = await supabaseAdmin.from('profiles').select('id,name,created_at').in('id', (teamR.data || []).map(t => t.user_id));
+  databaseError(teamError);
   teamR.data = (teamR.data || []).map(t => ({ ...t, ...(teamProfiles || []).find(p => p.id === t.user_id), id: t.user_id }));
   const products = (productsR.data || []).map(mapProduct);
   const actorIds = [...new Set([...(salesR.data || []).map((s: any) => s.actor_id), ...(stockR.data || []).map((m: any) => m.actor_id)].filter(Boolean))] as string[];
@@ -89,7 +88,8 @@ export async function handleBootstrap(request: Request) {
   const changeRequests = (changeR.data || [])
     .filter((r: any) => ctx.profile.role === 'Managing Director' || r.requester_id === ctx.userId)
     .map((r: any) => ({ id: r.id, requesterName: (teamR.data || []).find((t: any) => t.id === r.requester_id)?.name || '—', operation: r.operation, entity: r.entity_type, recordId: (r.payload as any)?.recordId || r.entity_id, reason: r.reason, status: r.status, decidedBy: r.decision_reason ? ((teamR.data || []).find((t: any) => t.id === r.reviewer_id)?.name || '—') : undefined, createdAt: r.created_at }));
-  const { data: wsRow } = await supabaseAdmin.from('workspaces').select('*').eq('id', ws).maybeSingle();
+  const { data: wsRow, error: workspaceError } = await supabaseAdmin.from('workspaces').select('*').eq('id', ws).maybeSingle();
+  databaseError(workspaceError);
   return json({
     user: publicUser(ctx.profile, emails.get(ctx.userId)),
     csrfToken: ctx.csrfToken,
@@ -123,7 +123,8 @@ export async function handleListProducts(request: Request) {
   if (!ctx) return bad('Sign in to continue.', 401);
   const denied = guard(ctx, 'products', false);
   if (denied) return denied;
-  const { data } = await supabaseAdmin.from('products').select('*').eq('workspace_id', ctx.profile.workspace_id);
+  const { data, error } = await supabaseAdmin.from('products').select('*').eq('workspace_id', ctx.profile.workspace_id);
+  databaseError(error);
   return json({ items: (data || []).map(mapProduct) });
 }
 
@@ -132,7 +133,8 @@ export async function handleListSales(request: Request) {
   if (!ctx) return bad('Sign in to continue.', 401);
   const denied = guard(ctx, 'sales', false);
   if (denied) return denied;
-  const { data } = await supabaseAdmin.from('sales').select('*, sale_lines(*)').eq('workspace_id', ctx.profile.workspace_id);
+  const { data, error } = await supabaseAdmin.from('sales').select('*, sale_lines(*)').eq('workspace_id', ctx.profile.workspace_id);
+  databaseError(error);
   return json({ items: (data || []).map((s: any) => mapSale(s, '—')) });
 }
 
@@ -141,7 +143,8 @@ export async function handleListCustomers(request: Request) {
   if (!ctx) return bad('Sign in to continue.', 401);
   const denied = guard(ctx, 'customers', false);
   if (denied) return denied;
-  const { data } = await supabaseAdmin.from('customers').select('*').eq('workspace_id', ctx.profile.workspace_id);
+  const { data, error } = await supabaseAdmin.from('customers').select('*').eq('workspace_id', ctx.profile.workspace_id);
+  databaseError(error);
   return json({ items: (data || []).map(mapCustomer) });
 }
 
@@ -149,15 +152,8 @@ export async function handleCreateTeam(request: Request) {
   const { b, ctx, denied } = await shopCtx(request, 'team');
   if (denied) return denied;
   if (ctx.profile.role !== 'Managing Director') return bad('Only the Managing Director can create team accounts.', 403);
-  const name = String(b.name || '').trim();
-  const email = String(b.email || '').trim().toLowerCase();
-  const password = String(b.password || '');
-  const role = String(b.role || '');
-  if (name.length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !validPassword(password) || !ROLES.includes(role) || role === 'Managing Director') {
-    return bad('Check name, email, compliant password and allowed role.');
-  }
   stepUp(ctx);
-  const account = await createAccount({ name, email, password, role }, ctx.profile.workspace_id);
+  const account = await createAccount(b, ctx.workspaceId);
   return json(account, 201);
 }
 
@@ -206,9 +202,9 @@ export async function handleCreateSale(request: Request) {
   }
   const adjusted: { p: any; qty: number }[] = [];
   for (const { p, qty } of lines) {
-    const { error: stockError } = await supabaseAdmin.from('products').update({ stock: Number(p.stock) - qty, updated_at: new Date().toISOString() }).eq('id', p.id);
+    const { error: stockError } = await supabaseAdmin.from('products').update({ stock: Number(p.stock) - qty, updated_at: new Date().toISOString() }).eq('id', p.id).eq('workspace_id', ws);
     if (stockError) {
-      for (const a of adjusted) await supabaseAdmin.from('products').update({ stock: a.p.stock }).eq('id', a.p.id);
+      for (const a of adjusted) await supabaseAdmin.from('products').update({ stock: a.p.stock }).eq('id', a.p.id).eq('workspace_id', ws);
       return bad('Stock update failed.', 500);
     }
     adjusted.push({ p, qty });
@@ -220,7 +216,7 @@ export async function handleCreateSale(request: Request) {
   const number = docNo('RCPT');
   const { data: sale, error: saleError } = await supabaseAdmin.from('sales').insert({ workspace_id: ws, number, payment, customer, total, actor_id: ctx.userId, idempotency_key: idempotencyKey }).select('id').single();
   if (saleError || !sale) {
-    for (const a of adjusted) await supabaseAdmin.from('products').update({ stock: a.p.stock }).eq('id', a.p.id);
+    for (const a of adjusted) await supabaseAdmin.from('products').update({ stock: a.p.stock }).eq('id', a.p.id).eq('workspace_id', ws);
     return bad('Sale failed; stock restoration attempted.', 500);
   }
   await supabaseAdmin.from('sale_lines').insert(lines.map(({ p, qty }) => ({ sale_id: sale.id, product_id: p.id, product_name: p.name, quantity: qty, unit_price: p.price })));
@@ -228,7 +224,7 @@ export async function handleCreateSale(request: Request) {
   await supabaseAdmin.from('stock_ledger').insert(lines.map(({ p, qty }) => ({ workspace_id: ws, product_id: p.id, quantity: qty, movement_type: 'OUT', reason: 'Sale ' + number, actor_id: ctx.userId })));
   const { data: existingCustomer } = await supabaseAdmin.from('customers').select('*').eq('workspace_id', ws).ilike('name', customer).maybeSingle();
   if (existingCustomer) {
-    await supabaseAdmin.from('customers').update({ visits: existingCustomer.visits + 1, lifetime_value: Number(existingCustomer.lifetime_value) + total }).eq('id', existingCustomer.id);
+    await supabaseAdmin.from('customers').update({ visits: existingCustomer.visits + 1, lifetime_value: Number(existingCustomer.lifetime_value) + total }).eq('id', existingCustomer.id).eq('workspace_id', ws);
   } else {
     await supabaseAdmin.from('customers').insert({ workspace_id: ws, name: customer, phone: '', visits: 1, lifetime_value: total });
   }
@@ -249,7 +245,7 @@ export async function handleStockMove(request: Request) {
   const current = Number(p.stock);
   const nextStock = type === 'IN' ? current + qty : type === 'OUT' ? current - qty : qty;
   if (nextStock < 0) return bad('Stock cannot become negative.', 409);
-  const { error } = await supabaseAdmin.from('products').update({ stock: nextStock, updated_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await supabaseAdmin.from('products').update({ stock: nextStock, updated_at: new Date().toISOString() }).eq('id', id).eq('workspace_id', ws);
   if (error) return bad('Stock adjustment failed.', 500);
   const { data: move, error: moveError } = await supabaseAdmin.from('stock_ledger').insert({ workspace_id: ws, product_id: id, quantity: type === 'SET' ? Math.abs(nextStock - current) : qty, movement_type: type, reason, actor_id: ctx.userId }).select('id').single();
   if (moveError || !move) return bad('Movement log could not be saved.', 500);
@@ -322,7 +318,7 @@ export async function handleCreateInvoice(request: Request) {
   if (error || !data) return bad('Invoice could not be created.', 500);
   const { error: lineError } = await supabaseAdmin.from('invoice_lines').insert(lines.map((l) => ({ invoice_id: data.id, description: l.description, quantity: l.qty, unit_price: l.unitPrice })));
   if (lineError) {
-    await supabaseAdmin.from('invoices').delete().eq('id', data.id);
+    await supabaseAdmin.from('invoices').delete().eq('id', data.id).eq('workspace_id', ws);
     return bad('Invoice lines could not be saved.', 500);
   }
   return json({ id: data.id, number, total }, 201);
@@ -358,7 +354,7 @@ export async function handleChangeDecision(request: Request) {
   if (!['Approved', 'Rejected'].includes(decision) || reason.length < 5) return bad('Decision and reason are required.');
   const { data: r } = await supabaseAdmin.from('change_requests').select('*').eq('id', id).eq('workspace_id', ctx.profile.workspace_id).maybeSingle();
   if (!r || r.status !== 'Pending') return bad('Request not found or already decided.', 404);
-  const { error } = await supabaseAdmin.from('change_requests').update({ status: decision, decision_reason: reason, reviewer_id: ctx.userId, decided_at: new Date().toISOString() }).eq('id', id);
+  const { error } = await supabaseAdmin.from('change_requests').update({ status: decision, decision_reason: reason, reviewer_id: ctx.userId, decided_at: new Date().toISOString() }).eq('id', id).eq('workspace_id', ctx.workspaceId).eq('status', 'Pending');
   if (error) return bad('Decision could not be saved.', 500);
   await supabaseAdmin.from('audit_events').insert({ workspace_id: r.workspace_id, actor_id: ctx.userId, action: 'change_request_decision', entity_type: r.entity_type, entity_id: r.entity_id, metadata: { details: decision + ' — ' + reason } });
   return json({ ok: true });
@@ -376,7 +372,7 @@ export async function handleStatus(request: Request) {
   const status = String(b.status || '');
   if (entity === 'team') {
     if (ctx.profile.role !== 'Managing Director') return bad('Only Managing Director can change team access.', 403);
-    const { data: u } = await supabaseAdmin.from('profiles').select('*').eq('id', id).eq('workspace_id', ws).maybeSingle();
+    const { data: u } = await supabaseAdmin.from('profiles').select('id').eq('id', id).maybeSingle();
     const { data: membership } = await supabaseAdmin.from('workspace_memberships').select('role').eq('user_id', id).eq('workspace_id', ws).maybeSingle();
     stepUp(ctx);
     if (!u || !membership || membership.role === 'Managing Director' || !['Active', 'Disabled'].includes(status)) return bad('Team record or status invalid.', 400);
@@ -386,23 +382,23 @@ export async function handleStatus(request: Request) {
   if (entity === 'invoices') {
     const { data: i } = await supabaseAdmin.from('invoices').select('*').eq('id', id).eq('workspace_id', ws).maybeSingle();
     if (!i || !['Paid', 'Cancelled'].includes(status)) return bad('Invoice status invalid.', 400);
-    const { error } = await supabaseAdmin.from('invoices').update({ status }).eq('id', id);
+    const { error } = await supabaseAdmin.from('invoices').update({ status }).eq('id', id).eq('workspace_id', ws);
     return error ? bad('Update failed.', 500) : json({ ok: true });
   }
   if (entity === 'purchases') {
     const { data: p } = await supabaseAdmin.from('purchases').select('*').eq('id', id).eq('workspace_id', ws).maybeSingle();
     if (!p) return bad('Purchase order not found.', 404);
     if (status === 'Ordered' && p.status === 'Draft') {
-      const { error } = await supabaseAdmin.from('purchases').update({ status }).eq('id', id);
+      const { error } = await supabaseAdmin.from('purchases').update({ status }).eq('id', id).eq('workspace_id', ws);
       return error ? bad('Update failed.', 500) : json({ ok: true });
     }
     if (status === 'Received' && p.status === 'Ordered') {
       const { data: product } = await supabaseAdmin.from('products').select('*').eq('id', p.product_id).eq('workspace_id', ws).maybeSingle();
       if (!product) return bad('Product not found.', 404);
-      const { error: stockError } = await supabaseAdmin.from('products').update({ stock: Number(product.stock) + Number(p.qty), cost: p.unit_cost, updated_at: new Date().toISOString() }).eq('id', p.product_id);
+      const { error: stockError } = await supabaseAdmin.from('products').update({ stock: Number(product.stock) + Number(p.qty), cost: p.unit_cost, updated_at: new Date().toISOString() }).eq('id', p.product_id).eq('workspace_id', ws);
       if (stockError) return bad('Stock receipt failed.', 500);
       await supabaseAdmin.from('stock_ledger').insert({ workspace_id: ws, product_id: p.product_id, quantity: p.qty, movement_type: 'IN', reason: 'Received ' + p.number, actor_id: ctx.userId });
-      const { error } = await supabaseAdmin.from('purchases').update({ status }).eq('id', id);
+      const { error } = await supabaseAdmin.from('purchases').update({ status }).eq('id', id).eq('workspace_id', ws);
       return error ? bad('Stock received but PO status update failed; reconcile.', 500) : json({ ok: true });
     }
     return bad('Invalid purchase-order transition.', 409);
@@ -461,15 +457,15 @@ export async function handleRefund(request: Request) {
   const { data: sale } = await supabaseAdmin.from('sales').select('*, sale_lines(*)').eq('id', String(b.id || '')).eq('workspace_id', ws).maybeSingle();
   if (!sale) return bad('Sale not found.', 404);
   if (sale.refunded_at) return bad('This sale was already refunded.', 409);
-  const { data: claimed, error } = await supabaseAdmin.from('sales').update({ refunded_at: new Date().toISOString(), refund_reason: reason, refunded_by: ctx.userId }).eq('id', sale.id).is('refunded_at', null).select('id');
+  const { data: claimed, error } = await supabaseAdmin.from('sales').update({ refunded_at: new Date().toISOString(), refund_reason: reason, refunded_by: ctx.userId }).eq('id', sale.id).eq('workspace_id', ws).is('refunded_at', null).select('id');
   if (error || !claimed?.length) return bad('Refund could not be recorded.', 409);
   for (const l of sale.sale_lines || []) {
     const { data: p } = await supabaseAdmin.from('products').select('stock').eq('id', l.product_id).eq('workspace_id', ws).maybeSingle();
     if (!p) continue;
-    await supabaseAdmin.from('products').update({ stock: Number(p.stock) + Number(l.quantity), updated_at: new Date().toISOString() }).eq('id', l.product_id);
+    await supabaseAdmin.from('products').update({ stock: Number(p.stock) + Number(l.quantity), updated_at: new Date().toISOString() }).eq('id', l.product_id).eq('workspace_id', ws);
     await supabaseAdmin.from('stock_ledger').insert({ workspace_id: ws, product_id: l.product_id, quantity: Number(l.quantity), movement_type: 'IN', reason: 'Refund ' + sale.number + ': ' + reason, actor_id: ctx.userId });
   }
   const { data: c } = await supabaseAdmin.from('customers').select('*').eq('workspace_id', ws).ilike('name', sale.customer).maybeSingle();
-  if (c) await supabaseAdmin.from('customers').update({ lifetime_value: Math.max(0, Number(c.lifetime_value) - Number(sale.total)) }).eq('id', c.id);
+  if (c) await supabaseAdmin.from('customers').update({ lifetime_value: Math.max(0, Number(c.lifetime_value) - Number(sale.total)) }).eq('id', c.id).eq('workspace_id', ws);
   return json({ ok: true });
 }

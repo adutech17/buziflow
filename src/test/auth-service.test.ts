@@ -61,6 +61,18 @@ describe.sequential('Database conversion and session enforcement', () => {
     const result = await db.query('select * from rotate_custom_session($1,$2,$3,$4)', ['b'.repeat(64), 'd'.repeat(64), 'csrf', other])
     expect(result.rows).toHaveLength(0)
   })
+  it('workspace switching never substitutes for password reauthentication', async () => {
+    await db.query("insert into workspace_memberships(user_id,workspace_id,role) values($1,$2,'Auditor')", [uid, other])
+    await seed('4'.repeat(64))
+    await db.query("update custom_sessions set authenticated_at=now()-interval '10 minutes' where id=$1", ['4'.repeat(64)])
+    const before = await db.query<{ authenticated_at: Date }>('select authenticated_at from custom_sessions where id=$1', ['4'.repeat(64)])
+    const switched = await db.query<{ authenticated_at: Date }>('select * from rotate_custom_session($1,$2,$3,$4)', ['4'.repeat(64), '5'.repeat(64), 'switch-csrf', other])
+    expect(switched.rows[0]?.authenticated_at).toEqual(before.rows[0]?.authenticated_at)
+  })
+  it('only verified reauthentication renews the step-up window', async () => {
+    const confirmed = await db.query<{ recent: boolean }>('select authenticated_at > now()-interval \'1 minute\' as recent from rotate_custom_session($1,$2,$3,null,true)', ['5'.repeat(64), '6'.repeat(64), 'verified-csrf'])
+    expect(confirmed.rows[0]?.recent).toBe(true)
+  })
   it('rejects expired sessions even with valid CSRF', async () => {
     await seed('e'.repeat(64))
     await db.query("update custom_sessions set created_at=now()-interval '8 days',expires_at=now()-interval '1 day' where id=$1", ['e'.repeat(64)])

@@ -48,10 +48,12 @@ ALTER TABLE public.auth_recovery_tokens ENABLE ROW LEVEL SECURITY;
 CREATE TABLE public.auth_rate_limits(key text PRIMARY KEY,attempts integer NOT NULL,expires_at timestamptz NOT NULL);
 GRANT ALL ON public.auth_rate_limits TO service_role;
 ALTER TABLE public.auth_rate_limits ENABLE ROW LEVEL SECURITY;
--- Preserve UUIDs and references, including sales actors and audit history.
+-- Preserve UUIDs and references only for ShopFlow's explicitly owned tables.
 DO $$ DECLARE c record; BEGIN
  FOR c IN SELECT conrelid::regclass tbl,conname,pg_get_constraintdef(oid) def FROM pg_constraint
   WHERE contype='f' AND confrelid='auth.users'::regclass AND connamespace='public'::regnamespace
+   AND conrelid IN (SELECT oid FROM pg_class WHERE relnamespace='public'::regnamespace
+    AND relname IN ('profiles','app_sessions','password_reset_tokens','sales','stock_ledger','expenses','change_requests','audit_events'))
  LOOP
   EXECUTE format('ALTER TABLE %s DROP CONSTRAINT %I',c.tbl,c.conname);
   EXECUTE format('ALTER TABLE %s ADD CONSTRAINT %I %s',c.tbl,c.conname,replace(c.def,'REFERENCES auth.users','REFERENCES public.app_accounts'));
@@ -60,8 +62,10 @@ END $$;
 -- Remove policies before removing their legacy profile role dependencies.
 DO $$ DECLARE t record; p record; BEGIN
  FOR p IN SELECT policyname,tablename FROM pg_policies WHERE schemaname='public'
+  AND tablename IN ('workspaces','profiles','app_sessions','password_reset_tokens','products','sales','sale_lines','receipts','stock_ledger','customers','suppliers','purchases','expenses','invoices','invoice_lines','change_requests','audit_events')
  LOOP EXECUTE format('DROP POLICY %I ON public.%I',p.policyname,p.tablename); END LOOP;
  FOR t IN SELECT tablename FROM pg_tables WHERE schemaname='public'
+  AND tablename IN ('workspaces','profiles','app_sessions','password_reset_tokens','products','sales','sale_lines','receipts','stock_ledger','customers','suppliers','purchases','expenses','invoices','invoice_lines','change_requests','audit_events')
  LOOP
   EXECUTE format('REVOKE ALL ON public.%I FROM anon,authenticated',t.tablename);
   EXECUTE format('GRANT ALL ON public.%I TO service_role',t.tablename);
@@ -92,7 +96,7 @@ END $$;
 REVOKE ALL ON FUNCTION public.consume_custom_session(text,text,boolean,boolean) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.consume_custom_session(text,text,boolean,boolean) TO service_role;
 
-CREATE FUNCTION public.rotate_custom_session(p_old text,p_new text,p_csrf text,p_workspace uuid DEFAULT NULL)
+CREATE FUNCTION public.rotate_custom_session(p_old text,p_new text,p_csrf text,p_workspace uuid DEFAULT NULL,p_reauthenticated boolean DEFAULT false)
 RETURNS SETOF public.custom_sessions LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE s custom_sessions; BEGIN
  SELECT * INTO s FROM custom_sessions WHERE id=p_old FOR UPDATE;
@@ -103,11 +107,11 @@ DECLARE s custom_sessions; BEGIN
  THEN RETURN; END IF;
  UPDATE custom_sessions SET revoked_at=now() WHERE id=p_old;
  INSERT INTO custom_sessions(id,user_id,workspace_id,csrf_token,security_version,created_at,expires_at,last_activity_at,authenticated_at,user_agent_hash)
- VALUES(p_new,s.user_id,coalesce(p_workspace,s.workspace_id),p_csrf,s.security_version,s.created_at,s.expires_at,now(),now(),s.user_agent_hash)
+ VALUES(p_new,s.user_id,coalesce(p_workspace,s.workspace_id),p_csrf,s.security_version,s.created_at,s.expires_at,now(),CASE WHEN p_reauthenticated THEN now() ELSE s.authenticated_at END,s.user_agent_hash)
  RETURNING * INTO s; RETURN NEXT s;
 END $$;
-REVOKE ALL ON FUNCTION public.rotate_custom_session(text,text,text,uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.rotate_custom_session(text,text,text,uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.rotate_custom_session(text,text,text,uuid,boolean) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.rotate_custom_session(text,text,text,uuid,boolean) TO service_role;
 
 CREATE FUNCTION public.auth_rate_limit(p_key text,p_limit integer,p_window_seconds integer)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
