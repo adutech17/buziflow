@@ -4,9 +4,10 @@
 - [x] Refunds & returns
 - [x] Sales reports export (spreadsheet, date range)
 - [x] Team / roles & permissions page: Managing Director only
-- [ ] Centralized custom accounts, memberships and sessions; remove alternative authentication
-- [ ] Origin, CSRF, expiry, rotation, revocation and step-up security
-- [ ] Frontend session lifecycle and authenticated operation integration
-- [ ] Database migration preserving existing accounts and data
-- [ ] Security regression tests and authenticated end-to-end verification
-- [ ] Password recovery delivery configuration
+- [x] Centralized custom accounts, memberships and sessions; remove alternative authentication from app code
+- [x] Origin, CSRF, expiry, rotation, revocation and step-up security
+- [x] Frontend session lifecycle and authenticated operation integration
+- [x] Database conversion SQL and local PostgreSQL security regression tests
+- [ ] Activate conversion in original database and disable former providers — requires original database owner
+- [ ] Authenticated end-to-end verification — blocked by unapplied original database conversion
+- [ ] Password recovery delivery configuration — requires verified sender and private email-service key
